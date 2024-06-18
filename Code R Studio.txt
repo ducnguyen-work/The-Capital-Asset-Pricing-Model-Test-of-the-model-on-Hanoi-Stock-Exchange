@@ -1,0 +1,239 @@
+
+#Step 1: Input data
+
+  install.packages("rio")
+  library(rio)
+  Book1 <- import("2.Data.xlsx",sheet=2)
+  Book2 <- import("2.Data.xlsx",sheet=3)
+
+
+#Step 2: The two-pass regression test
+
+## Estimate Beta value of 50 assets
+  
+  num=52
+  no=369
+  ma<-matrix(seq(0,(num-2)*5-1),nrow=num-2,ncol=5,byrow = TRUE)
+  av<-rep(0,num-2)
+  beta<-rep(0,num-2)
+  rv<-rep(0,num-2)
+
+  for (i in 2:(num-1)){
+    lm_capm = lm(Book1[1:369,i]~Book1[1:369,num])
+    ma[i-1,1]=lm_capm$coefficients[1]
+    ma[i-1,2]=lm_capm$coefficients[2]
+    ma[i-1,3]=summary(lm_capm)$coefficient[1,4]
+    ma[i-1,4]=summary(lm_capm)$coefficient[2,4]
+    ma[i-1,5]=mean(Book1[,i])
+    av[i-1]=mean(Book1[,i])
+    beta[i-1]=lm_capm$coefficients[2]
+    rv[i-1]=var(residuals(lm_capm))
+  }
+
+  mxa=data.frame(name=Book2[,2],intercept=ma[,1],slope= ma[,2],p_value_of_intercept=ma[,3],p_value_of_slope=ma[,4],average=av)
+  
+  #Percentage of significant Beta: 
+  paste(sum(ma[,4]<0.05) * 2  ,"%")
+  #Percentage of insignificant Intercept: 
+  paste(100 - sum(ma[,3]<0.05) * 2 ,"%")
+  
+## SML Estimation 
+
+  summary(lm(av~beta))
+  plot(av ~ beta, pch=16,col = "blue")
+  abline(lm(av~beta),col="red")
+  linearHypothesis(lm(av~beta), "beta = 0.0740154")
+  
+  # APM predicted values for Gamma 1 
+  mean(Book1[,num])
+
+## Non-linearity Test
+  
+  summary(lm(av~beta + I(beta^2)))
+  #install.packages("AER")
+  library(AER)
+  linearHypothesis(lm(av~beta + I(beta^2)),"I(beta^2) = 0")
+
+## Non-systematic risk Test.  
+  
+  summary(lm(av~beta + I(beta^2)+ rv))
+  linearHypothesis(lm(av~beta + I(beta^2)+ rv),"I(beta^2) = 0")
+
+#Step 3: Black, Jensen and Scholes, Fama and MacBeth Test
+
+##Test 1: Estimate Beta value of 50 assets in Quarter 1,2 and 3
+  
+  num=length(Book1)
+  no=369
+  ma<-matrix(seq(0,(num-2)*5-1),nrow=num-2,ncol=5,byrow = TRUE)
+  av<-rep(0,num-2)
+  beta<-rep(0,num-2)
+  rv<-rep(0,num-2)
+  
+  
+  for (i in 2:(num-1)){
+    lm_capm = lm(Book1[1:184,i]~Book1[1:184,num])
+    ma[i-1,1]=lm_capm$coefficients[1]
+    ma[i-1,2]=lm_capm$coefficients[2]
+    ma[i-1,3]=summary(lm_capm)$coefficient[1,4]
+    ma[i-1,4]=summary(lm_capm)$coefficient[2,4]
+    ma[i-1,5]=mean(Book1[,i])
+    av[i-1]=mean(Book1[,i])
+    beta[i-1]=lm_capm$coefficients[2]
+    rv[i-1]=var(residuals(lm_capm))
+  }
+  
+  mxa1=data.frame(no=seq(1,50),name=Book2[,2],intercept=ma[,1],slope= ma[,2],p_value_of_intercept=ma[,3],p_value_of_slope=ma[,4])
+  mxa1=mxa1[order(mxa1$slope),]
+  mxa1['portfolio']=c(rep(1,5),rep(2,5),rep(3,5),rep(4,5),rep(5,5),rep(6,5),rep(7,5), rep(8,5), rep(9,5),rep(10,5))
+
+  #Percentage of significant Beta: 
+  paste(sum(ma[,4]<0.05) * 2  ,"%")
+  #Percentage of insignificant Intercept: 
+  paste(100 - sum(ma[,3]<0.05) * 2 ,"%")
+  
+
+##Test 2: Estimate Beta value of 50 assets in Quarter 2,3 and 4
+  
+  num=length(Book1)
+  no=369
+  ma<-matrix(seq(0,(num-2)*5-1),nrow=num-2,ncol=5,byrow = TRUE)
+  av<-rep(0,num-2)
+  beta<-rep(0,num-2)
+  rv<-rep(0,num-2)
+  
+  
+  for (i in 2:(num-1)){
+    lm_capm = lm(Book1[59:250,i]~Book1[59:250,num])
+    ma[i-1,1]=lm_capm$coefficients[1]
+    ma[i-1,2]=lm_capm$coefficients[2]
+    ma[i-1,3]=summary(lm_capm)$coefficient[1,4]
+    ma[i-1,4]=summary(lm_capm)$coefficient[2,4]
+    ma[i-1,5]=mean(Book1[,i])
+    av[i-1]=mean(Book1[,i])
+    beta[i-1]=lm_capm$coefficients[2]
+    rv[i-1]=var(residuals(lm_capm))
+  }
+  
+  mxa2=data.frame(no=seq(1,50),name=Book2[,2],intercept=ma[,1],slope= ma[,2],p_value_of_intercept=ma[,3],p_value_of_slope=ma[,4])
+  mxa2=mxa2[order(mxa2$slope),]
+  mxa2['portfolio']=c(rep(1,5),rep(2,5),rep(3,5),rep(4,5),rep(5,5),rep(6,5),rep(7,5), rep(8,5), rep(9,5),rep(10,5))
+
+  #Percentage of significant Beta: 
+  paste(sum(ma[,4]<0.05) * 2  ,"%")
+  #Percentage of insignificant Intercept: 
+  paste(100 - sum(ma[,3]<0.05) * 2 ,"%")
+  
+##Test 3: Estimate Beta value of 50 assets in Quarter 3,4 and 1(2022)
+  
+  num=length(Book1)
+  no=369
+  ma<-matrix(seq(0,(num-2)*5-1),nrow=num-2,ncol=5,byrow = TRUE)
+  av<-rep(0,num-2)
+  beta<-rep(0,num-2)
+  rv<-rep(0,num-2)
+  
+  
+  for (i in 2:(num-1)){
+    lm_capm = lm(Book1[121:308,i]~Book1[121:308,num])
+    ma[i-1,1]=lm_capm$coefficients[1]
+    ma[i-1,2]=lm_capm$coefficients[2]
+    ma[i-1,3]=summary(lm_capm)$coefficient[1,4]
+    ma[i-1,4]=summary(lm_capm)$coefficient[2,4]
+    ma[i-1,5]=mean(Book1[,i])
+    av[i-1]=mean(Book1[,i])
+    beta[i-1]=lm_capm$coefficients[2]
+    rv[i-1]=var(residuals(lm_capm))
+  }
+  
+  mxa3=data.frame(no=seq(1,50),name=Book2[,2],intercept=ma[,1],slope= ma[,2],p_value_of_intercept=ma[,3],p_value_of_slope=ma[,4])
+  mxa3=mxa3[order(mxa3$slope),]
+  mxa3['portfolio']=c(rep(1,5),rep(2,5),rep(3,5),rep(4,5),rep(5,5),rep(6,5),rep(7,5), rep(8,5), rep(9,5),rep(10,5))
+  
+  #Percentage of significant Beta: 
+  paste(sum(ma[,4]<0.05) * 2  ,"%")
+  #Percentage of insignificant Intercept: 
+  paste(100 - sum(ma[,3]<0.05) * 2 ,"%")
+
+## Portfolio Construction
+  
+  port<-matrix(seq(0,369*10-1),nrow=369,ncol=10,byrow = TRUE)
+  for (i in 185:250){
+    for (j in 1:10){
+      #port[i,j]=mean(Book1[i,mxa1$no[j:(j+4)]+1])
+      port[i,j]=mean(c(Book1[i,mxa1$no[j]+1],Book1[i,mxa1$no[j+1]+1],Book1[i,mxa1$no[j+2]+1],Book1[i,mxa1$no[j+3]+1],Book1[i,mxa1$no[j+4]+1]))
+    }
+  }
+  
+  for (i in 251:308){
+    for (j in 1:10){
+      port[i,j]=mean(c(Book1[i,mxa2$no[j]+1],Book1[i,mxa2$no[j+1]+1],Book1[i,mxa2$no[j+2]+1],Book1[i,mxa2$no[j+3]+1],Book1[i,mxa2$no[j+4]+1]))
+    }
+  }
+  
+  for (i in 309:369){
+    for (j in 1:10){
+      port[i,j]=mean(c(Book1[i,mxa3$no[j]+1],Book1[i,mxa3$no[j+1]+1],Book1[i,mxa3$no[j+2]+1],Book1[i,mxa3$no[j+3]+1],Book1[i,mxa3$no[j+4]+1]))
+    }
+  }
+
+## Regression the average portfolios’ risk premiums to their betas resulting in estimation of the security market line. 
+## Estimate Beta value of 10 Portfolios 
+  
+  ma<-matrix(seq(0,49),nrow=10,ncol=5,byrow = TRUE)
+  av<-rep(0,10)
+  beta<-rep(0,10)
+  rv<-rep(0,10)
+  
+  
+  for (i in 1:10){
+    
+    lm_capm = lm(port[185:369,i]~Book1[185:369,num])
+    ma[i,1]=lm_capm$coefficients[1]
+    ma[i,2]=lm_capm$coefficients[2]
+    ma[i,3]=summary(lm_capm)$coefficient[1,4]
+    ma[i,4]=summary(lm_capm)$coefficient[2,4]
+    ma[i,5]=mean(port[185:369,i])
+    av[i]=mean(port[185:369,i])+0.006536068
+    beta[i]=lm_capm$coefficients[2]
+    rv[i]=var(residuals(lm_capm))
+  }
+  
+  mxa4=data.frame(portfolio=seq(1,10),average_risk_premium=av,beta= ma[,2],beta_square=(ma[,2])^2,variance_of_residuals=rv/10000)
+  #Percentage of significant Beta: 
+  paste(sum(ma[,4]<0.05) * 10  ,"%")
+  #Percentage of insignificant Intercept: 
+  paste(100 - sum(ma[,3]<0.05) * 10 ,"%")
+
+## SML Estimation
+  
+  summary(lm(av~beta))
+  plot(av ~ beta, pch=16,col = "blue")
+  abline(lm(av~beta),col="red")
+
+  # APM predicted values for Gamma 1 
+  mean(Book1[,num])
+
+## Non-linearity Test
+  
+  summary(lm(av~beta + I(beta^2)))
+  linearHypothesis(lm(av~beta + I(beta^2)),"I(beta^2) = 0")
+
+## Non-systematic risk Test.  
+
+  summary(lm(av~beta + I(beta^2)+ rv))
+  linearHypothesis(lm(av~beta + I(beta^2)+ rv),"I(beta^2) = 0")
+
+#Step 4: Export Data
+  install.packages("openxlsx")
+  library(openxlsx)
+  
+  #define sheet names for each data frame
+  #dataset_names <- list('Regression Result for Q1-2021 to Q2 -2022' = mxa, 'Regression Result for Q1-2021 to Q3 -2021' = mxa1,'Regression Result for Q2-2021 to Q4 -2021' = mxa2,'Regression Result for Q3-2021 to Q1 -2022' = mxa3, 'Cross-sectional regression inputs'=mxa4)
+  dataset_names <- list('sheet1' = mxa, 'sheet2' = mxa1,'sheet3' = mxa2,'sheet4' = mxa3, 'sheet5'=mxa4)
+  
+  #export each data frame to separate sheets in same Excel file
+  openxlsx::write.xlsx(dataset_names, file = 'mydata.xlsx') 
+
+
+
