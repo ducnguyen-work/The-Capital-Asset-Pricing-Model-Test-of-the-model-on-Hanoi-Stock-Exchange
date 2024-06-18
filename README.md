@@ -1,0 +1,6 @@
+# The-Capital-Asset-Pricing-Model-Test-of-the-model-on-Hanoi-Stock-Exchange
+The Capital Asset Pricing Model : Test of the model on Hanoi Stock Exchange
+
+Because of their high levels of profitability, stock markets around the world in general, and in Vietnam in particular, have long piqued the interest of investment institutions and individual investors. They are, nonetheless, vulnerable to a wide range of potential risks. Measuring the stock’s systemic risks can assist investors in developing effective risk-mitigation measures. As a result, economists are interested in developing econometric models that are consistent with the facts. The capital asset pricing model (CAPM) is widely used in many nations throughout the world due to its basic methods and easy application. It states that in a competitive market the expected rate of return on an asset varies in direct proportion to its beta.
+
+In this paper the performance of 50 stocks traded continuously on the Hanoi Stock Exchange from January 1, 2021, to the end of June 2022 has been tested. We conducted two independent tests of the CAPM using different approaches and techniques to better check the theory’s validity, and then compared the results.
